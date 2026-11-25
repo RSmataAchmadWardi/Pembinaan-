@@ -89,7 +89,7 @@ h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-size:1.65rem;line
     </ul>
     <p>✅ Baiknya mengisi presensi &amp; refleksi ini saat pembinaan sedang berlangsung yaitu sesuai dengan jadwal yang telah di tentukan.</p>
   </section>
-  <h1>Pembinaan Kelompok Staf Ikhwan</h1>
+  <h1 id="judul">Pembinaan Kelompok Staf Ikhwan</h1>
   <p class="sub">Isi presensi terlebih dahulu, lalu masuk ke Zoom.</p>
 
   <section class="card sched" aria-label="Jadwal pembinaan">
@@ -126,10 +126,6 @@ h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-size:1.65rem;line
         <input type="text" id="nama" autocomplete="name" placeholder="Ketik nama lengkap Anda">
       </div>
       <a class="btn alt" id="absen" href="https://bit.ly/Presensi-Refleksi-Pembinaan" target="_blank" rel="noopener">Utamakan absensi</a>
-      <label class="check">
-        <input type="checkbox" id="done">
-        <span>Saya sudah mengisi absensi</span>
-      </label>
     </div>
   </section>
 
@@ -138,7 +134,7 @@ h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-size:1.65rem;line
     <div style="flex:1;min-width:0">
       <h2>Masuk Zoom</h2>
       <a class="btn" id="zoom" href="https://bit.ly/Pembinaan-KelompokStaf-Ikhwan" target="_blank" rel="noopener" aria-disabled="true">Masuk Zoom Meeting</a>
-      <p class="hint" id="hint">Tombol aktif setelah nama diisi dan presensi dicentang.</p>
+      <p class="hint" id="hint">Tombol aktif setelah nama diisi dan tombol Utamakan absensi diklik.</p>
       <div class="zoom-info">
         <span>Meeting ID</span><b>810 4747 9935</b>
         <span>Passcode</span><b>829834</b>
@@ -149,28 +145,46 @@ h1{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-size:1.65rem;line
 
 <script>
 (function(){
-  var nm=document.getElementById('nama'),done=document.getElementById('done'),zoom=document.getElementById('zoom'),
+  var nm=document.getElementById('nama'),absen=document.getElementById('absen'),zoom=document.getElementById('zoom'),
       s1=document.getElementById('s1'),s2=document.getElementById('s2'),
       b1=document.getElementById('b1'),hint=document.getElementById('hint');
+  var sudahAbsen=false;
+  try{sudahAbsen=sessionStorage.getItem('absenDibuka')==='1';}catch(e){}
   function update(){
-    var ok=done.checked&&nm.value.trim().length>0;
+    var ok=sudahAbsen&&nm.value.trim().length>0;
     zoom.setAttribute('aria-disabled',ok?'false':'true');
     s2.classList.toggle('locked',!ok);
     s1.classList.toggle('done',ok);
     b1.textContent=ok?'\u2713':'1';
-    hint.textContent=ok?'Silakan masuk. Gunakan Meeting ID dan Passcode jika diminta.':'Tombol aktif setelah nama diisi dan presensi dicentang.';
+    hint.textContent=ok?'Silakan masuk. Gunakan Meeting ID dan Passcode jika diminta.':'Tombol aktif setelah nama diisi dan tombol Utamakan absensi diklik.';
   }
+  absen.addEventListener('click',function(e){
+    if(nm.value.trim().length===0){
+      e.preventDefault();
+      hint.textContent='Isi nama dulu, lalu klik Utamakan absensi.';
+      nm.focus();
+      return;
+    }
+    sudahAbsen=true;
+    try{sessionStorage.setItem('absenDibuka','1');}catch(err){}
+    update();
+  });
   zoom.addEventListener('click',function(e){
     if(zoom.getAttribute('aria-disabled')==='true'){
       e.preventDefault();
-      hint.textContent='Isi nama dan presensi dulu, lalu centang kotak di langkah 1.';
+      hint.textContent='Isi nama dan klik Utamakan absensi dulu di langkah 1.';
     }
   });
-  var pem=document.getElementById('pemateri'),ico=document.getElementById('ico');
-  pem.addEventListener('change',function(){
-    ico.textContent=pem.value.indexOf('Ustadzah')===0?'🧕':'👳‍♂️';
-  });
-  done.addEventListener('change',update);
+  var pem=document.getElementById('pemateri'),ico=document.getElementById('ico'),judul=document.getElementById('judul');
+  function setPemateri(){
+    var cewek=pem.value.indexOf('Ustadzah')===0;
+    ico.textContent=cewek?'🧕':'👳‍♂️';
+    var t='Pembinaan Kelompok Staf '+(cewek?'Akhwat':'Ikhwan');
+    judul.textContent=t;
+    document.title=t;
+  }
+  pem.addEventListener('change',setPemateri);
+  setPemateri();
   var tgl=document.getElementById('tgl'),hari=document.getElementById('hari');
   var NH=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
   function setHari(){
